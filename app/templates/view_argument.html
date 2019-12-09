@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/jqcloud.min.css') }}">
+
+<style>
+.max-hight {
+    min-height: 80vh;
+    
+}
+.col {
+  text-align: center;
+  
+}
+.right-border {
+    border-left: 1px solid rgba(0, 0, 0, .2);
+}
+.left-border {
+    border-right: 1px solid rgba(0, 0, 0, .2);
+}
+.min50 {
+    max-width: 55vw;
+    margin: 0 auto;
+}
+.usr-comment {
+    background-color:white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    text-align: justify;
+    text-justify: inter-word;
+}
+.usr-comment::first-letter{
+    text-transform: uppercase;
+}
+
+.white {
+    background:rgba(0, 0, 0, .2);
+    padding: 5px;
+}
+.round-left {
+    border-radius: 15px 0px 0px 15px;
+}
+.round-right {
+    border-radius: 0px 15px 15px 0px
+}
+
+.progress .progress-bar {
+    animation-name: animateBar;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-in;
+    animation-duration: 1s;
+}
+@keyframes animateBar {
+    0% {transform: translateX(-100%);}
+    100% {transform: translateX(0);}
+}
+
+.fade-elements {
+width:100%;
+height: 100%;
+z-index: 1;
+position: absolute;
+background-color: rgba(0, 0, 0, 0.8);
+border-radius: 2px;
+opacity: 0.5;
+cursor: wait;
+
+}
+
+.comment-field {
+  position: relative;
+}
+
+.spinner-grow {
+  position: absolute;
+  left: 0; top:0; right: 0; bottom: 0;
+  margin: auto;
+  width: 5em;
+  height: 5em;
+}
+
+.comment {
+  min-height: 7em;
+  resize: none;
+  border-radius: 4px;
+}
+.msgback {
+  font-size: 14px;
+  text-align: left;
+}
+
+.proWC, .conWC {
+  margin:0 auto;
+  width: 90%;
+  height: 300px;
+}
+
+
+
+</style>
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    {{ moment.include_moment() }}
+    
+    <script src="{{ url_for('static', filename='js/jqcloud.js') }}"></script>
+
+    <script>
+        function divClicked() {
+            var divHtml = $(this).html();
+            var editableText = $("<textarea class='form-control usr-comment' style='width:100%;'>");
+            editableText.val(divHtml);
+        
+            $(this).replaceWith(editableText);
+            editableText.focus();
+            // setup the blur event for this new textarea
+            editableText.blur(editableTextBlurred);
+        }
+
+        function editableTextBlurred() {
+            var html = $(this).val();
+            var viewableText = $("<div class='usr-comment'>");
+            viewableText.html(html);
+            $(this).replaceWith(viewableText);
+            // setup the click event for this new div
+            viewableText.click(divClicked);
+        }
+        $(".usr-comment").click(divClicked);
+
+        function loadStat(ratio){
+            var vc = document.getElementById("barConcole");
+            var bc = document.getElementById("barConcole");
+            var vu = document.getElementById("voteUp");
+            var vd = document.getElementById("voteDown");
+
+            vc.classList.remove('d-none');
+            vu.classList.add('d-none');
+            vd.classList.add('d-none');
+
+            document.getElementById('pbar').style.width = Math.ceil(ratio) + "%";
+            document.getElementById('ratio').innerHTML = ratio + "%";
+
+
+        }
+       {% if voted %} 
+            loadStat( {{ratio}} );
+        {% else %}
+        document.getElementById('voteUp').addEventListener('click', function() 
+        { makeAjax('{{url_for("main.make_vote", flag=1, mid=arg.id) }}', {} , 
+        function(data){loadStat(data.ratio); console.log(data);}) }
+        );
+
+        document.getElementById('voteDown').addEventListener('click', function() 
+        { makeAjax('{{url_for("main.make_vote", flag=0, mid=arg.id) }}', {},  
+        function(data){loadStat(data.ratio); console.log(data);}) }
+        );
+        {% endif %}
+        
+        function insertComment(content, flag){
+            var el = '<div class="usr-comment">'+content+'</div>';
+            console.log(content);
+            var pro =  document.getElementById("usrPro");
+            var con =  document.getElementById("usrCon");
+
+            if (flag)
+                pro.innerHTML = el + pro.innerHTML;
+            else 
+                con.innerHTML = el + con.innerHTML;
+
+        }
+
+        function makeComment(flag, comment, msg, prog) {
+            if(!comment.value) return;
+            prog.classList.remove("d-none");
+            msg.classList.remove("fade");
+
+            params = {"body": comment.value, "flag": flag}
+            makeAjax('{{url_for("main.make_comment", mid=arg.id) }}', params, function(data){
+                if(data.success){
+                    msg.innerHTML = "";
+                    insertComment(comment.value, flag);
+                    comment.value = "";
+
+                }
+                
+                msg.innerHTML = data.msg;
+               prog.classList.add("d-none");
+            });
+
+        }
+
+        document.getElementById("addProComment").addEventListener('click', function(){
+            var comment  = document.getElementById("proComment");
+            var msg  = document.getElementById("msgBackPro");
+            var prog = document.getElementById("progPro");
+            makeComment(1, comment, msg, prog);
+        });
+
+        document.getElementById("addConComment").addEventListener('click', function(){
+            var comment  = document.getElementById("conComment");
+            var msg  = document.getElementById("msgBackCon");
+            var prog = document.getElementById("progCon");
+            makeComment(0, comment, msg, prog);
+        });
+
+        var proWords = [
+        {% for i, (k,val) in pro_kwd %}
+            {text: "{{k}}", weight: {{val}} },
+        {% endfor %}
+        ];
+
+        var conWords = [
+        {% for i, (k,val) in con_kwd %}
+            {text: "{{k}}", weight: {{val}} },
+        {% endfor %}
+        ];
+
+        $('#proWC').jQCloud(proWords, {
+            autoResize: true,
+            classPattern: null,
+            fontSize: {
+                from: 0.1,
+                to: 0.02
+            }});
+        
+        $('#conWC').jQCloud(conWords, {
+            autoResize: true,
+            classPattern: null,
+            fontSize: {
+                from: 0.1,
+                to: 0.02
+            }
+            });
+
+    </script>
+  
+{% endblock %}
+
+{% block payload %}
+<div class="card shadow mb-4 min50">
+        <img class="card-img-top" data-src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text={{arg.question}}" alt="{{arg.question}}">
+        <div class="card-body">
+          <p class="card-text">{{arg.body}}</p>
+          <div class="d-flex justify-content-between align-items-center">
+              <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+              </div>
+              <small class="text-muted">{{ moment(arg.timestamp).calendar() }} by {{arg.author.username}}</small>
+            </div>
+        </div>
+      </div>
+      <div class="container" style="margin-bottom: 20px;">
+        <div class="row min50">
+            
+            <div id="barConcole" class="col d-none" >
+                <span id="ratio" >{{ ratio }}%</span> 
+                <div id="bar" class="progress mb-4" style="height: 30px;">
+                        <div id="pbar" class="progress-bar bg-success" 
+                        role="progressbar" 
+                        aria-valuenow="{{ratio}}"
+                        aria-valuemin="0" aria-valuemax="1">
+                        <span style="text-align: right; vertical-align: baseline; font-size: 1.4em;"> 👍</span>
+                    </div>
+                </div>
+            </div>
+                    <div id="voteUp" class="col round-left left-border white" >
+                        👍
+                    </div>
+                    <div id="voteDown" class="col round-right white" >
+                        👎
+                    </div>
+        </div>
+    </div>
+        <div class="container max-hight">
+  
+            <div class="row  min50">
+                <div id="pro" class="col-sm-6 max-hight">
+                    
+                    <div class="comment-field">
+                        
+                        <div id="progPro" class="d-none fade-elements">
+                        <div class="spinner-grow text-primary" role="status">
+                                <span class="sr-only">Posting...</span>
+                        </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <textarea id="proComment" class="form-control comment" placeholder="It is right because ..."></textarea>                    
+                        </div>
+                        <div id="msgBackPro" class="fade msgback"><p></p></div>
+                        <button id="addProComment" type="button" class="form-control mb-4 btn btn-outline-secondary ">Add</button>
+                    </div>
+                    <div id="usrPro" class="user-comments">
+                        {% for comment in pro_comments %}
+                            <div class="usr-comment">{{comment.body}}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-sm-6 right-border max-hight">
+                    <div class="comment-field">
+                    
+                        <div id="progCon" class="d-none fade-elements">
+                            <div class="spinner-grow text-primary" role="status">
+                                <span class="sr-only">Posting...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <textarea id="conComment" class="form-control comment" placeholder="It is wrong because ..."></textarea>                    
+                        </div>
+                        <div id="msgBackCon" class="msgback"><p></p></div>
+                        <button id="addConComment" type="button" class="form-control mb-4 btn btn-outline-secondary ">Add</button>
+                    </div>
+                    <div id="usrCon" class="user-comments">
+                        {% for comment in con_comments %}
+                            <div class="usr-comment">{{comment.body}}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+            </div>
+            <div class="row">
+                <div class="col">
+                        <div id="proWC" class="proWC"></div>
+                </div>
+                <div class="col">
+                        <div id="conWC" class="conWC"></div>
+                </div>
+            </div>    
+        </div>
+            
+{% endblock %}
+

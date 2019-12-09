@@ -1,0 +1,67 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+  Polemical
+{% endblock %}
+
+{% block styles %}
+  <!-- CSS Fonts -->
+  <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Cairo&display=swap" rel="stylesheet"> 
+
+  <!-- Styles -->
+  <link href="{{ url_for('static', filename='css/sb-admin/sb-admin-2.min.css') }}" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css?family=Tajawal&display=swap');
+    </style>
+  {% endblock %}
+
+{% block body_attribs %}{% endblock %}
+  {% block content %}
+
+    
+  {% endblock %}
+{% block scripts %}
+ {{ super() }}
+  <!-- Core plugin JavaScript-->
+  <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+  <!-- sb-admin scripts  -->
+  <script src="{{ url_for('static', filename='js/sb-admin/sb-admin-2.min.js') }}"></script>
+
+
+  
+  
+  <script src="{{ url_for('static', filename='js/holder.js') }}"></script>
+  <script>
+    function jsonify(response) {
+      try {
+          return JSON.parse(response);
+        } catch(err) {
+            console.log(err.message + " in " + response);
+            alert('There is an error');
+            return;
+        }
+    }
+    function makeAjax(url, params, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                var jsoned_data = jsonify(xhr.responseText);
+                callback(jsoned_data);
+            } else {
+              callback({'msg': 'Could not connect to the server'});
+              console.log("error " + xhr.status);
+              alert("Error!");
+              return;
+            }
+            
+        };
+     
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+        xhr.send(JSON.stringify( params ));
+    }
+  </script>
+  {% endblock %}
