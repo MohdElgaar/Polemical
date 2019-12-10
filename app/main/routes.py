@@ -131,6 +131,10 @@ def before_request():
 
 
 
+@bp.route('/login')
+def login():
+    return render_template("index.html")
+    # return redirect(url_for('main.fun'))
 
 @bp.route('/logout')
 def logout():

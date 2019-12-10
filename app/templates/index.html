@@ -1,15 +1,41 @@
 {% extends "base.html" %}
 
+{% block styles %}
+{{ super() }}
+<style>
+.jumbotron {
+background-image: url('https://picsum.photos/960/540/?blur=2');
+background-size: cover;
+}
+.highlight {
+    background-color:#333;
+    padding:3px;
+    border-radius:1px;
+    color:white;
+    
+}
+</style>
+{% endblock %}
 
-
+{% block scripts %}
+    {{super()}}
+    {{ moment.include_moment() }}
+{% endblock %}
 
 {% block payload %}
 
-<div>
-  Header
-</div>
+    <section class="jumbotron text-center">
+        <div class="container">
+          <h1 class="jumbotron-heading" > <span class="highlight">Polemical</span> </h1>
+          <p class="lead text-muted" style="margin-top:20px;"> <span class="highlight">A civilized discussion venue.</span>     </p>
+          <p>
+            <a href="#" class="btn btn-primary my-2">Add a discussion</a>
+            <a href="#" class="btn btn-secondary my-2">View discussions</a>
+          </p>
+        </div>
+      </section>
 
-<div>
-  List of arguments!
-</div>
+    <div>
+      List of arguments!
+    </div>
 {% endblock %}
