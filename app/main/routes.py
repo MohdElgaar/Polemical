@@ -41,7 +41,8 @@ def hasVoted(mid):
 @bp.route('/')
 @login_required
 def fun():
-    return render_template("index.html")
+    arguments = Post.query.all()
+    return render_template("index.html", args=arguments)
 
 def getKwds(comment_list):
     #TODO: @Mathew given list of comments, extract the main keywords  
