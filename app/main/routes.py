@@ -126,16 +126,41 @@ def before_request():
     log_lastseen()
 
 
-
-
-
-
-
-
-@bp.route('/login')
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template("index.html")
-    # return redirect(url_for('main.fun'))
+    if current_user.is_authenticated:
+        print("User is authenticated!")
+        return redirect(url_for('main.fun'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username= form.username.data.lower() ).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Wrond password or username")
+            print("wrong password mate")
+            return redirect(url_for('main.login'))
+        login_user(user, remember=False)
+        print("[Login] {} logged in {}".format(user.username, datetime.utcnow()) )
+        return redirect(url_for('main.fun'))
+        flash('login for {} with password {} is failed'.format(form.username.data, form.password.data) )
+    return render_template("login.html", form=form)
+
+@bp.route('/register', methods=['GET', 'POST'])
+def reg():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.fun'))
+    form = RegisterationForm()
+    if form.validate_on_submit():
+        print("User registered")
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+
+        return redirect(url_for('main.login'))
+    for fieldName, errorMessages in form.errors.items():
+        for err in errorMessages:
+            flash(err)
+    return render_template('register.html', form=form)
 
 @bp.route('/logout')
 def logout():
