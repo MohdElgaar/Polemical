@@ -1,6 +1,6 @@
 
 from flask import render_template, redirect, flash, url_for, abort, jsonify, request
-from app.main.forms import LoginForm, RegisterationForm, EditProfileForm, AddTopicForm
+from app.main.forms import LoginForm, RegisterationForm, EditProfileForm, AddTopicForm, SearchForm
 from app import db, Config
 from flask_login import current_user, login_user, logout_user, user_unauthorized
 from app.models import User, Comment, Post, Vote
@@ -37,12 +37,34 @@ def hasVoted(mid):
             .first() is not None
 
 
-@bp.route('/index')
-@bp.route('/')
+@bp.route('/index', methods=['GET', 'POST'])
+@bp.route('/', methods=['GET', 'POST'])
 @login_required
 def fun():
+    search=SearchForm(request.form)
+    if request.method == 'POST':
+        return search_results(search)
     arguments = Post.query.all()
-    return render_template("index.html", args=arguments)
+    return render_template("index.html", args=arguments, form=search)
+
+@bp.route('/search')
+def search_results(search):
+    results = []
+    search_string = search.data['search']
+ 
+    if search_string == '':
+        results=Post.query.all()
+    else:
+        posts=Post.query.all()
+        for post in posts:
+            if search_string in post.question:
+                results.append(post)
+    if not results:
+        flash('No results found!')
+        return redirect('/')
+    else:
+        return render_template('index.html', args=results, form=search)
+
 
 def getKwds(comment_list):
     #TODO: @Mathew given list of comments, extract the main keywords  
