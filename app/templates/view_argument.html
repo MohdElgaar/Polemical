@@ -236,6 +236,36 @@ cursor: wait;
             });
 
     </script>
+
+    <script>
+        $("#proComment").keyup(function(){
+            var text = $(this).val();
+
+            makeAjax('{{url_for("main.similarity", flag=0, pro=1, mid=arg.id) }}', {"sentence": text},
+                     function(data){
+                         var r = data.sim * 255;
+                         var g = (1 - data.sim) * 255;
+                         document.getElementById("proSim").style = `color:rgb(${r},${g},0)`;
+                         data.sim *= 100;
+                         document.getElementById("proSim").innerHTML = data.sim.toFixed(2) + '% similar to exisiting argument.';
+                     })
+        })
+    </script>
+
+    <script>
+        $("#conComment").keyup(function(){
+            var text = $(this).val();
+
+            makeAjax('{{url_for("main.similarity", flag=0, pro=0, mid=arg.id) }}', {"sentence": text},
+                     function(data){
+                         var r = data.sim * 255;
+                         var g = (1 - data.sim) * 255;
+                         document.getElementById("conSim").style = `color:rgb(${r},${g},0)`;
+                         data.sim *= 100;
+                         document.getElementById("conSim").innerHTML = data.sim.toFixed(2) + '% similar to exisiting argument.';
+                     })
+        })
+    </script>
   
 {% endblock %}
 
@@ -288,6 +318,7 @@ cursor: wait;
                         </div>
                         </div>
                         
+                        <small><p id="proSim">Simlarity to existing arguments.</p></small>
                         <div class="input-group">
                             <textarea id="proComment" class="form-control comment" placeholder="It is right because ..."></textarea>                    
                         </div>
@@ -310,6 +341,7 @@ cursor: wait;
                             </div>
                         </div>
                         
+                        <small><p id="conSim">Simlarity to existing arguments.</p></small>
                         <div class="input-group">
                             <textarea id="conComment" class="form-control comment" placeholder="It is wrong because ..."></textarea>                    
                         </div>
