@@ -4,6 +4,7 @@ from app.main.forms import LoginForm, RegisterationForm, EditProfileForm, AddTop
 from app import db, Config
 from flask_login import current_user, login_user, logout_user, user_unauthorized
 from app.models import User, Comment, Post, Vote
+from app.main.similarity import sentence_similarity
 from flask_login import login_required
 from sqlalchemy import desc
 from datetime import datetime
@@ -113,6 +114,26 @@ def make_comment(mid):
         
     return jsonify({"success":True, 'msg':'Thank you for your opinion!'})
 
+@bp.route('/sim/<mid>/<pro>', methods=['POST'])
+def similarity(mid, pro):
+    arg = Post.query.filter_by(id=mid).first_or_404()
+    if pro:
+        comments = Comment.query.filter_by(post_id=mid, is_pro=1) \
+                .order_by(desc(Comment.timestamp))
+    else:
+        comments = Comment.query.filter_by(post_id=mid, is_pro=0) \
+                .order_by(desc(Comment.timestamp))
+    req_json = request.get_json()
+    sentence = req_json.get('sentence')
+
+    max_sim = 0
+    for reference in comments:
+        sim = sentence_similarity(sentence,reference.body)
+        if sim > max_sim:
+            max_sim = sim
+
+    return jsonify({"sim": max_sim})
+
 
 
 def log_lastseen():
@@ -174,6 +195,14 @@ def logout():
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     return render_template('user.html')
+
+@bp.route('/disputes/<username>')  # dynamic component
+@login_required
+
+def disputes(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    arguments = Post.query.filter_by(user_id=user.id)
+    return render_template('disputes.html', args=arguments)
 
 @bp.route('/edit_profile', methods=['POST'])
 @login_required
