@@ -49,3 +49,6 @@ class EditProfileForm(FlaskForm):
             if u:
                 raise ValidationError("Username is already taken.")
 
+class SearchForm(FlaskForm):
+    search = StringField('Search_here',[DataRequired()])
+    submit = SubmitField('Submit')
