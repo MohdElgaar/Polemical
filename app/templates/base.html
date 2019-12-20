@@ -23,12 +23,12 @@ Polemical
         <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
             <a class="navbar-brand" href="/">Polemical</a>
           <!-- Topbar Search -->
-          <form class="d-none d-sm-inline-block form-inline mr-auto flex-fill ml-md-4 my-2 my-md-3 mw-100 navbar-search "  >
+          <form class="d-none d-sm-inline-block form-inline mr-auto flex-fill ml-md-4 my-2 my-md-3 mw-100 navbar-search "  method=post>
             <div class="input-group">
-              <input type="text" class="form-control bg-light border-0 small" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
+              {{ form.search(class="form-control form-control-user", placeholder='Search') }}                      
               <div class="input-group-append">
                 <button class="btn btn-primary" type="button">
-                  <i class="fas fa-search fa-sm"></i>
+                  <i class="fas fa-search fa-sm", value=Search></i>
                 </button>
               </div>
             </div>

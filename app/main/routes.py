@@ -51,6 +51,7 @@ def hasVoted(mid):
 def fun():
     search=SearchForm(request.form)
     if request.method == 'POST':
+        # search_query = request.form['search']
         return search_results(search)
     arguments = Post.query.all()
     return render_template("index.html", args=arguments, form=search)
