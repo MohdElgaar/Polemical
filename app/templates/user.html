@@ -1,8 +1,26 @@
+
 {% extends "base.html" %}
     {% block payload %}
+    
+        <div>Hello, {{ current_user.username }}</div>
+        <ul>
+            {% for p in posts %}
+                {% include '_post.html' %} 
+            {% endfor %}
+        </ul>
         <div>
-            User info
-        </div>           
+            {% if user.last_seen %}
+                <p>Last seen on: {{ user.last_seen }}</p>
+            {% endif %}
+            {% if user.about %}
+            <p>About: {{ user.about }}</p>
+            {% endif %}
+        </div>
+        <div>
+        {% if current_user.username == user.username %}
+            {% include '_edit_profile.html' %}
+        {% endif %}
+        </div>            
     {% endblock %}
 
 

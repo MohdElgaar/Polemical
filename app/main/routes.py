@@ -214,10 +214,13 @@ def logout():
 
 @bp.route('/user/<username>')  # dynamic component
 @login_required
-
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html')
+    posts = [
+    ]
+    return render_template('user.html', posts=posts, user=user,
+     form=EditProfileForm(current_user))
+    # return render_template('user.html')
 
 @bp.route('/disputes/<username>')  # dynamic component
 @login_required
