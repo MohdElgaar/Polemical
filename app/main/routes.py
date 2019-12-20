@@ -8,6 +8,7 @@ from app.main.similarity import sentence_similarity
 from flask_login import login_required
 from sqlalchemy import desc
 from datetime import datetime
+from app.main import keywordsfile
 import time 
 from functools import wraps
 from app.main import main_bp as bp
@@ -22,6 +23,12 @@ def injector():
         'site_name': Config.SITE_NAME
     }
 
+def getKwds(comment_list):
+    t = keywordsfile.Keyword()
+    text = ". ".join([c.body for c in comment_list])
+   
+    t.analyze(text)
+    return t.get_keywords(10)
 
 def getVotingRatio(mid):
     """Given an argument id, returns the ratio of pro votes""" 
@@ -69,8 +76,10 @@ def search_results(search):
 
 
 def getKwds(comment_list):
-    #TODO: @Mathew given list of comments, extract the main keywords  
-    return {"dummy":0.5, "keyword":0.2, "for":0.22, "demonstration":0.31, "purposes":0.002}.items()
+    t = keywordsfile.TextRank4Keyword()
+    text = ". ".join([c.body for c in comment_list])
+    t.analyze(text)
+    return t.get_keywords(10)
 
 
 @bp.route('/a/<aid>', methods=['GET', 'POST'])
@@ -79,13 +88,13 @@ def viewarg(aid):
     arg = Post.query.filter_by(id=aid).first_or_404()
     pro_comments = Comment.query.filter_by(post_id=aid, is_pro=1).order_by(desc(Comment.timestamp))
     con_comments = Comment.query.filter_by(post_id=aid, is_pro=0).order_by(desc(Comment.timestamp))
-    pro_kwds = enumerate(getKwds(pro_comments))
-    con_kwds = enumerate(getKwds(con_comments))
+    pro_kwds = getKwds(pro_comments)
+    con_kwds = getKwds(con_comments)
 
     
     if hasVoted(aid):
-        return render_template("view_argument.html", arg=arg, voted=True, ratio=getVotingRatio(aid), pro_comments=pro_comments, con_comments=con_comments, pro_kwd=pro_kwds, con_kwd=con_kwds)
-    return render_template("view_argument.html", arg=arg, voted=False, pro_kwd=pro_kwds, con_kwd=con_kwds, pro_comments=pro_comments, con_comments=con_comments)
+        return render_template("view_argument.html", arg=arg, ratio=getVotingRatio(aid), pro_comments=pro_comments, con_comments=con_comments, pro_kwd=pro_kwds, con_kwd=con_kwds)
+    return render_template("view_argument.html", arg=arg, pro_kwd=pro_kwds, con_kwd=con_kwds, pro_comments=pro_comments, con_comments=con_comments)
 
 @bp.route('/addtopic', methods=['GET', 'POST'])
 def addtopic():
